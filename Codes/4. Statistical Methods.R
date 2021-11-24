@@ -3,6 +3,7 @@ library(utils)
 library(stats)
 library(modeest)
 library(graphics)
+library(tidyquant)
 
 data <- read.csv("https://raw.githubusercontent.com/Anirudh-Mishra/Working-with-data/main/dataset_19BDS0078.csv")
 #head(data)
@@ -142,6 +143,8 @@ print(paste(data_mean-(data_sd*2), data_mean+(data_sd*2)))
 cat('\n99.7% data lies between\n') 
 print(paste(data_mean-(data_sd*3),data_mean+(data_sd*3)))
 
+
+
 # PLOTTING AND VISUALISING DATA
 # Graph
 col <- as.vector(df[, 'No_of_Transactions'])
@@ -150,3 +153,55 @@ plot(col, main = "Number of Transactions")
 # Histogram
 hist(col, probability = T)
 curve(dnorm(x, mean = data_mean, sd= data_sd), add = T, main = "Number of Transactions")
+
+cat('\n\n')
+
+# To suppress warnings
+options(warn=-1)
+
+
+
+
+# HYPOTHESIS TESTING
+
+# The data used in this particular part of the experiment involves stock data of two stocks namely, Exxon Mobil Corporation and Intel Corporation. 
+# The details of both these stocks in the 5 month gap of March to August of the current year is inserted into variables   
+exxon <- tq_get('XOM', from = "2021-03-01", to = "2021-08-01", get = "stock.prices")
+intel <- tq_get('INTC', from = "2021-03-01", to = "2021-08-01", get = "stock.prices")
+
+# Then the subset of the data is considered where we take into account only the open prices of the two stocks for the purpose of comparison of significance.
+exxon <- exxon$high
+intel <- intel$high
+
+#exxon
+#intel
+
+# A T-test is carried out to test the significance of the difference between the open prices of both stocks.
+
+# STEP 1 -> For the purpose of a constant result, the whole sample of 106 rows is considered rather than a random sample.
+# STEP 2 -> Null Hypothesis -  There is no difference or significance relationship between the open prices of the two stocks.
+# STEP 3 -> Alternate Hypothesis -  The true difference is different from zero meaning a significant difference does exist.
+# STEP 4 -> Significance level(aplha value) is considered to be 5%(0.05).
+# STEP 5 -> Test Statistic and corresponding p-value are calculated.
+
+result = t.test(sample(exxon, 100), sample(intel, 100), var.equal = T)
+cat('\n')
+result
+
+# Test statistic value
+print(result[1])
+
+# p-Value
+print(result[3])
+
+# STEP 6 -> DRAWING A CONCLUSION
+# Figuring out whether to accept or reject null hypothesis
+if(result[3]<0.05){
+  print('Null Hypothesis rejected')
+  # In this case the result shows the p-value comes out to be lesser than the significance level chosen (i.e 0.05) as a result of which the null hypothesis is rejected
+  # in favor of the alternate hypothesis and hence there exists a significant difference between the open prices of both the stock symbols.
+}else{
+  print('Null Hypothesis accepted')
+  # In this case the result shows the p-value comes out to be greater than the significance level chosen (i.e 0.05) as a result of which the null hypothesis is accepted  
+  # and hence there exists no significant difference between the open prices of both the stock symbols.
+}
